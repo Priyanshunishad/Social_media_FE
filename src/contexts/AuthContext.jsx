@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
+
   // Signup
   const signup = async (signupInput) => {
    const res= await api.post("/user/signup", signupInput); // POST /api/v1/user/signup
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }) => {
     return res.data
   };
 
+
   const createPost=async(fromData)=>{
     const res=await api.post('/post',fromData)
     return res.data
@@ -54,6 +56,20 @@ export const AuthProvider = ({ children }) => {
     const res= await api.get('/post/feed')
     return res.data
   }
+  const getComments=async(postId)=>{
+    const res= await api.get(`/post/comments/${postId}`)
+    return res.data
+  }
+  const commentsOnPost=async(postId,comment)=>{
+    const res= await api.post(`/post/comment/${postId}`,{text:comment})  
+    return res.data
+  }
+
+  const addReply=async(commentId,reply)=>{
+    const res= await api.post(`/post/reply-on-comment/${commentId}`,{text:reply})
+    return res.data 
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -64,7 +80,10 @@ export const AuthProvider = ({ children }) => {
         logout,
         createPost,
         setUser,
-        fetchFeed
+        fetchFeed,
+        getComments,
+        commentsOnPost,
+        addReply
       }}
     >
       {children}
