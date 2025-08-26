@@ -3,22 +3,28 @@ import { FiSettings } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 
 function Profile({ userData }) {
-  // userData will come from backend (passed as prop or from context)
-  const [user, setUser] = useState(userData || null);
-  const {user:authUser}=useAuth()
-useEffect(()=>{
-    setUser(authUser)
-},[authUser])
-  
+  const { user: authUser, fetchProfilePosts } = useAuth();
 
+  const [user, setUser] = useState(userData || authUser || null);
   const [posts, setPosts] = useState(userData?.posts || []);
   const [followed, setFollowed] = useState(false);
 
+  // Fetch posts when profile loads
+  useEffect(() => {
+    const loadPosts = async () => {
+      if (!user) return;
+      try {
+        const profilePosts = await fetchProfilePosts(user.id);
+        console.log("profilePosts", profilePosts);
+        
+        if (profilePosts.success) setPosts(profilePosts.posts);
+      } catch (error) {
+        console.error("Failed to load posts:", error);
+      }
+    };
 
-  const followHandler = () => {
-    setFollowed(!followed);
-  };
-
+    loadPosts();
+  }, [user]);
 
   if (!user) {
     return (
@@ -27,6 +33,11 @@ useEffect(()=>{
       </div>
     );
   }
+
+  const followHandler = () => {
+    // ⚡ Here you’d call your backend follow/unfollow API
+    setFollowed((prev) => !prev);
+  };
 
   return (
     <div className="flex flex-col items-center w-full mt-6 px-3">
@@ -50,22 +61,28 @@ useEffect(()=>{
           <div className="flex flex-wrap items-center gap-4">
             <h2 className="text-2xl font-light">{user.username}</h2>
 
-            <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
-              Edit Profile
-            </button>
+            {/* Edit only for logged-in user */}
+            {authUser?.id === user.id && (
+              <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
+                Edit Profile
+              </button>
+            )}
 
             <FiSettings className="text-2xl cursor-pointer" />
 
-            <button
-              onClick={followHandler}
-              className={`px-4 py-1 text-sm font-medium rounded-md transition ${
-                followed
-                  ? "bg-gray-200 text-black hover:bg-gray-300"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
-              }`}
-            >
-              {followed ? "Unfollow" : "Follow"}
-            </button>
+            {/* Follow / Unfollow */}
+            {authUser?.id !== user.id && (
+              <button
+                onClick={followHandler}
+                className={`px-4 py-1 text-sm font-medium rounded-md transition ${
+                  followed
+                    ? "bg-gray-200 text-black hover:bg-gray-300"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
+                {followed ? "Unfollow" : "Follow"}
+              </button>
+            )}
           </div>
 
           {/* Stats */}
@@ -100,9 +117,9 @@ useEffect(()=>{
       <div className="w-full max-w-5xl grid grid-cols-3 gap-1 mt-6">
         {posts.length > 0 ? (
           posts.map((p) => (
-            <div key={p._id} className="aspect-square">
+            <div key={p.id || p._id} className="aspect-square">
               <img
-                src={p.imgurl || "https://via.placeholder.com/400"}
+                src={p.image || "https://via.placeholder.com/400"}
                 alt="post"
                 className="w-full h-full object-cover hover:opacity-90 cursor-pointer"
               />

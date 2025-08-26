@@ -69,6 +69,10 @@ export const AuthProvider = ({ children }) => {
     const res= await api.post(`/post/reply-on-comment/${commentId}`,{text:reply})
     return res.data 
   }
+  const fetchProfilePosts=async()=>{
+    const res= await api.get(`/post`)
+    return res.data
+  }
 
   return (
     <AuthContext.Provider
@@ -83,7 +87,9 @@ export const AuthProvider = ({ children }) => {
         fetchFeed,
         getComments,
         commentsOnPost,
-        addReply
+        addReply,
+        fetchProfilePosts
+
       }}
     >
       {children}

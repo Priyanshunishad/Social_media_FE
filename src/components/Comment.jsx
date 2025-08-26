@@ -25,12 +25,12 @@ const Comment = ({ comment }) => {
       <div className="flex gap-3">
         <img
           src={`https://ui-avatars.com/api/?name=${comment.user.username}&background=random`}
-          alt={comment.user.username}
+          alt={comment.user?.username}
           className="w-8 h-8 rounded-full"
         />
         <div>
           <p className="text-sm">
-            <span className="font-semibold mr-2">{comment.user.username}</span>
+            <span className="font-semibold mr-2">{comment.user?.username}</span>
             {comment.text}
           </p>
           <div className="flex items-center gap-3 text-xs text-gray-500">
@@ -71,13 +71,13 @@ const Comment = ({ comment }) => {
             <div key={reply.id} className="flex gap-3">
               <img
                 src={`https://ui-avatars.com/api/?name=${reply.user.username}&background=random`}
-                alt={reply.user.username}
+                alt={reply.user?.username}
                 className="w-7 h-7 rounded-full"
               />
               <div>
                 <p className="text-sm">
                   <span className="font-semibold mr-2">
-                    {reply.user.username}
+                    {reply.user?.username}
                   </span>
                   {reply.text}
                 </p>
