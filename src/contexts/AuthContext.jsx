@@ -55,6 +55,20 @@ const fetchUserByUsername = async (username) => {
     const res=await api.post('/post',fromData)
     return res.data
   }
+  const updateProfile = async (formData) => {
+  try {
+    const res = await api.put(`/user/editProfile`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    if (res.data.success) {
+      setUser(res.data.user);
+      return { success: true, user: res.data.user };
+    }
+    return { success: false, message: res.data.message };
+  } catch (err) {
+    return { success: false, message: err?.response?.data?.message || "Error" };
+  }
+};
   const fetchFeed=async()=>{
     const res= await api.get('/post/feed')
     return res.data
@@ -93,7 +107,7 @@ const fetchUserByUsername = async (username) => {
         addReply,
         fetchProfilePosts,
         fetchUserByUsername
-
+        ,updateProfile
       }}
     >
       {children}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FiSettings } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 import { useParams } from "react-router-dom";
+import EditProfile from "./EditProfile";
 
 function Profile({ userData }) {
   const { username } = useParams();
@@ -12,7 +13,7 @@ function Profile({ userData }) {
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [followed, setFollowed] = useState(false);
-  
+  const [showEdit, setShowEdit] = useState(false);
 
   // 🔹 Load user either from props, authUser, or by username in URL
   useEffect(() => {
@@ -45,6 +46,7 @@ function Profile({ userData }) {
         const profilePosts = await fetchProfilePosts(user.id);
         console.log("profilePosts", profilePosts);
         if (profilePosts.success) setPosts(profilePosts.posts);
+
       } catch (error) {
         console.error("Failed to load posts:", error);
       }
@@ -109,15 +111,17 @@ function Profile({ userData }) {
         <div className="flex flex-col flex-1">
           <div className="flex flex-wrap items-center gap-4">
             <h2 className="text-2xl font-light">{user.username}</h2>
-
+          
             {authUser?.id === user.id && (
-              <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
+              <button
+                className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50"
+                onClick={() => setShowEdit(true)}
+              >
                 Edit Profile
               </button>
             )}
-
+            <EditProfile isOpen={showEdit} onClose={() => setShowEdit(false)} />
             <FiSettings className="text-2xl cursor-pointer" />
-
             {authUser?.id !== user.id && (
               <button
                 onClick={followHandler}
