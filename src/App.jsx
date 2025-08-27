@@ -8,6 +8,7 @@ import Profile from './components/Profile'
 import  { Toaster } from 'react-hot-toast';
 import CreatePostModal from './components/CreatePost'
 import CreatePostPage from './components/CreatePost'
+import Search from './components/Search'
 // import CreatePost from './components/CreatePost'
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
         <Route path='/login' element={<Login/>}/>
         <Route path='/profile/:username'  element={<Profile/>}/>
         <Route path='/create-post'  element={<CreatePostPage/>}/>
+        <Route path='/search'  element={<Search/>}/>
       
       </Route>
     </Routes>
