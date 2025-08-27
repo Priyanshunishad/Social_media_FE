@@ -20,7 +20,7 @@ const LeftNavbar = () => {
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
-        <span className="text-2xl font-bold font-serif">Instagram</span>
+        <span className="text-2xl font-bold font-serif">Trending Talks</span>
         <button
           className="md:hidden btn btn-ghost btn-sm"
           onClick={() => setOpen((prev) => !prev)}

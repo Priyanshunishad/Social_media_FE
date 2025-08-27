@@ -24,7 +24,7 @@ const Navbar = () => {
       <div className="flex-1">
         <Link to="/" style={{ textDecoration: "none" }}>
           <span className="text-[32px] px-5 font-bold text-black cursor-pointer font-['Dancing_Script',cursive]">
-            instagram
+            Trending Talks
           </span>
         </Link>
       </div>

@@ -51,7 +51,7 @@ const registerHandler = async (e) => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <span className="font-['Dancing_Script',cursive] text-5xl font-bold text-gray-800">
-              instagram
+              Trending Talks
             </span>
           </div>
 
