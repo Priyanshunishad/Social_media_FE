@@ -2,18 +2,17 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { api } from "../api"; // axios instance
 
 const AuthContext = createContext();
-
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is already logged in (via cookie session)
+  // ✅ Check if user is already logged in (run only once)
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await api.get("/user"); // GET /api/v1/user/
+        const res = await api.get("/user");
         setUser(res.data.user);
       } catch (error) {
         setUser(null);
@@ -22,74 +21,74 @@ export const AuthProvider = ({ children }) => {
       }
     };
     fetchUser();
-  }, [user]);
+  }, []); // ✅ empty deps → no infinite loop
 
-const fetchUserByUsername = async (username) => {
-  const res = await api.get(`/user/${username}`); // backend: GET /api/v1/user/:username
-  return res.data;
-};
-  // Signup
-  const signup = async (signupInput) => {
-   const res= await api.post("/user/signup", signupInput); // POST /api/v1/user/signup
-    // Optionally, auto-login after signup
-    return res.data
+  const fetchUserByUsername = async (username) => {
+    const res = await api.get(`/user/${username}`);
+    return res.data;
   };
 
-  // Login
+  const signup = async (signupInput) => {
+    const res = await api.post("/user/signup", signupInput);
+    return res.data;
+  };
+
   const login = async (loginInput) => {
-    const res = await api.post("/user/login", loginInput); // POST /api/v1/user/login
+    const res = await api.post("/user/login", loginInput);
     setUser(res.data);
     return res.data;
-
   };
 
-  // Logout
   const logout = async () => {
-  const res=  await api.post("/user/logout"); // POST /api/v1/user/logout
+    const res = await api.post("/user/logout");
     setUser(null);
-    return res.data
+    return res.data;
   };
 
+  const createPost = async (formData) => {
+    const res = await api.post("/post", formData);
+    return res.data;
+  };
 
-  const createPost=async(fromData)=>{
-    const res=await api.post('/post',fromData)
-    return res.data
-  }
   const updateProfile = async (formData) => {
-  try {
-    const res = await api.put(`/user/editProfile`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    if (res.data.success) {
-      setUser(res.data.user);
-      return { success: true, user: res.data.user };
+    try {
+      const res = await api.put(`/user/editProfile`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res.data.success) {
+        setUser(res.data.user);
+        return { success: true, user: res.data.user };
+      }
+      return { success: false, message: res.data.message };
+    } catch (err) {
+      return { success: false, message: err?.response?.data?.message || "Error" };
     }
-    return { success: false, message: res.data.message };
-  } catch (err) {
-    return { success: false, message: err?.response?.data?.message || "Error" };
-  }
-};
-  const fetchFeed=async()=>{
-    const res= await api.get('/post/feed')
-    return res.data
-  }
-  const getComments=async(postId)=>{
-    const res= await api.get(`/post/comments/${postId}`)
-    return res.data
-  }
-  const commentsOnPost=async(postId,comment)=>{
-    const res= await api.post(`/post/comment/${postId}`,{text:comment})  
-    return res.data
-  }
+  };
 
-  const addReply=async(commentId,reply)=>{
-    const res= await api.post(`/post/reply-on-comment/${commentId}`,{text:reply})
-    return res.data 
-  }
-  const fetchProfilePosts=async()=>{
-    const res= await api.get(`/post`)
-    return res.data
-  }
+  const fetchFeed = async () => {
+    const res = await api.get("/post/feed");
+    return res.data;
+  };
+
+  const getComments = async (postId) => {
+    const res = await api.get(`/post/comments/${postId}`);
+    return res.data;
+  };
+
+  const commentsOnPost = async (postId, comment) => {
+    const res = await api.post(`/post/comment/${postId}`, { text: comment });
+    return res.data;
+  };
+
+  const addReply = async (commentId, reply) => {
+    const res = await api.post(`/post/reply-on-comment/${commentId}`, { text: reply });
+    return res.data;
+  };
+
+  const fetchProfilePosts = async () => {
+    const res = await api.get(`/post`);
+    return res.data;
+  };
 
   return (
     <AuthContext.Provider
@@ -106,18 +105,11 @@ const fetchUserByUsername = async (username) => {
         commentsOnPost,
         addReply,
         fetchProfilePosts,
-        fetchUserByUsername
-        ,updateProfile
+        fetchUserByUsername,
+        updateProfile,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-// const useAuth = () => {
-//   const context = useContext(AuthContext);
-//   if (!context) {
-//     throw new Error("useAuth must be used within an AuthProvider");
-//   }
-//   return context;
-// } 
