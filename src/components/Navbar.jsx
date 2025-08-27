@@ -20,9 +20,21 @@ const Navbar = () => {
     }
   };
 
+  // ✅ Search Handler
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const query = e.target.search.value.trim();
+    if (query) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+      e.target.reset();
+    } else {
+      toast.error("Please enter a search term");
+    }
+  };
+
   return (
-    <div className="navbar bg-base-100 shadow-sm">
-      {/* ✅ Brand Logo */}
+    <div className="navbar bg-white shadow-sm border-b sticky top-0 z-50">
+      {/* ✅ Brand Logo (Previous one restored) */}
       <div className="flex-1">
         <Link to="/" style={{ textDecoration: "none" }}>
           <span className="text-[32px] px-5 font-bold text-black cursor-pointer font-['Dancing_Script',cursive]">
@@ -33,7 +45,7 @@ const Navbar = () => {
 
       {/* ✅ If User is not logged in */}
       {!user ? (
-        <div className="flex gap-2">
+        <div className="flex gap-2 px-4">
           <Link to="/signup" className="btn btn-soft btn-primary">
             Signup
           </Link>
@@ -42,42 +54,34 @@ const Navbar = () => {
           </Link>
         </div>
       ) : (
-        <div className="flex gap-4 items-center">
-          {/* ✅ Create Post Button */}
-          <button
-            aria-label="Create Post"
-            className="btn btn-ghost btn-circle"
-            onClick={() => navigate("/create-post")}
-          >
-            <FiPlusSquare size={24} />
-          </button>
-
+        <div className="flex gap-6 items-center px-4">
           {/* ✅ Search Box */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const query = e.target.search.value;
-              if (query.trim()) {
-                navigate(`/search?q=${query}`);
-              }
-            }}
-          >
+          <form onSubmit={handleSearch}>
             <input
               name="search"
               type="text"
-              placeholder="Search"
-              className="input input-bordered w-24 md:w-auto outline-none"
+              placeholder="Search..."
+              className="input input-bordered w-40 md:w-64 outline-none rounded-full px-4"
             />
           </form>
 
-          {/* ✅ User Dropdown */}
+          {/* ✅ Create Post Button */}
+          <button
+            aria-label="Create Post"
+            className="btn btn-ghost"
+            onClick={() => navigate("/create-post")}
+          >
+            <FiPlusSquare size={26} />
+          </button>
+
+          {/* ✅ User Profile Dropdown */}
           <div className="dropdown dropdown-end">
             <div
               tabIndex={0}
               role="button"
               className="btn btn-ghost btn-circle avatar"
             >
-              <div className="w-10 rounded-full">
+              <div className="w-10 rounded-full border">
                 <img
                   alt="User Avatar"
                   src={
@@ -89,7 +93,7 @@ const Navbar = () => {
             </div>
             <ul
               tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow"
             >
               <li>
                 <Link to={`/profile/${user.username}`}>Profile</Link>
