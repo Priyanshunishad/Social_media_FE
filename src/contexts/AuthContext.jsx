@@ -22,9 +22,12 @@ export const AuthProvider = ({ children }) => {
       }
     };
     fetchUser();
-  }, []);
+  }, [user]);
 
-
+const fetchUserByUsername = async (username) => {
+  const res = await api.get(`/user/${username}`); // backend: GET /api/v1/user/:username
+  return res.data;
+};
   // Signup
   const signup = async (signupInput) => {
    const res= await api.post("/user/signup", signupInput); // POST /api/v1/user/signup
@@ -88,7 +91,8 @@ export const AuthProvider = ({ children }) => {
         getComments,
         commentsOnPost,
         addReply,
-        fetchProfilePosts
+        fetchProfilePosts,
+        fetchUserByUsername
 
       }}
     >
