@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import Comment from "./Comment";
 
 const Comments = ({ post, setShowComments }) => {
-  const { getComments ,commentsOnPost } = useAuth();
+  const { getComments ,commentsOnPost ,user} = useAuth();
   const [comments, setComments] = useState([]);
 
   const [commentText, setCommentText] = useState("");
@@ -24,8 +24,20 @@ const Comments = ({ post, setShowComments }) => {
   const addComment=async()=>{
     if(commentText.trim() ==="") return;
     const newComment=await commentsOnPost( post.id,commentText)
-    setComments((prev)=>[...prev,newComment])
-    setCommentText("")
+    // 
+     if (newComment?.success) {
+    const populatedComment = {
+      ...newComment.comment,
+      user: {
+        username: user.username,
+        profilePicture: user.profilePicture,
+      },
+      replies: [],
+    };
+
+    setComments((prev) => [...prev, populatedComment]);
+  }
+  setCommentText("");
   }
 
   return (

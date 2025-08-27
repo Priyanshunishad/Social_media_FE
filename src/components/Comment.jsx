@@ -4,9 +4,11 @@ import { useAuth } from "../contexts/AuthContext";
 // import { useAuth } from "../context/AuthContext"; // ✅ make sure path is correct
 
 const Comment = ({ comment }) => {
+  console.log("Rendering Comment:", comment); // Debugging line
   const { addReply } = useAuth(); // function from context
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState("");
+
 
   const handleAddReply = async () => {
     if (!replyText.trim()) return;
@@ -25,7 +27,7 @@ const Comment = ({ comment }) => {
       <div className="flex gap-3">
         <img
           src={`https://ui-avatars.com/api/?name=${comment?.user?.username}&background=random`}
-          alt={comment.user?.username}
+          alt={comment?.user?.username}
           className="w-8 h-8 rounded-full"
         />
         <div>
