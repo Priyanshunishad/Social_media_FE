@@ -11,21 +11,26 @@ const Comments = ({ post, setShowComments }) => {
 
   const [commentText, setCommentText] = useState("");
 
+ 
+ useEffect(() => {
+  const fetchComments = async () => {
+    const data = await getComments(post.id);
+    if (data?.comments) {
+      // sort newest first
+      const sorted = [...data.comments].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setComments(sorted);
+    }
+  };
+  fetchComments();
+}, [post.id, getComments]);
 
+  const addComment = async () => {
+  if (commentText.trim() === "") return;
+  const newComment = await commentsOnPost(post.id, commentText);
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      const data = await getComments(post.id);
-      if (data?.comments) setComments(data.comments);
-    };
-    fetchComments();
-  }, [post.id, getComments]);
-
-  const addComment=async()=>{
-    if(commentText.trim() ==="") return;
-    const newComment=await commentsOnPost( post.id,commentText)
-    // 
-     if (newComment?.success) {
+  if (newComment?.success) {
     const populatedComment = {
       ...newComment.comment,
       user: {
@@ -35,10 +40,12 @@ const Comments = ({ post, setShowComments }) => {
       replies: [],
     };
 
-    setComments((prev) => [...prev, populatedComment]);
+    // put at top instead of bottom
+    setComments((prev) => [populatedComment, ...prev]);
   }
   setCommentText("");
-  }
+};
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
