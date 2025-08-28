@@ -34,7 +34,7 @@ function Post({ post, onDelete }) {
     try {
       const res = await deletePost(post.id);
       if (res.success) {
-        onDelete(post.id); // notify parent
+        onDelete(post.id); // parent ko notify
         toast.success(res.message || "Post deleted successfully");
       } else {
         toast.error(res.message || "Failed to delete post");

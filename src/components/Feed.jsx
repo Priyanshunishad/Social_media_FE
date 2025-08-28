@@ -13,21 +13,22 @@ function Feed() {
   const listRef = useRef();
 
   // reusable fetch (page, reset = false)
-  const fetchPosts = useCallback(async (page = 1, reset = false) => {
-    setLoading(true);
-    const res = await fetchFeed(page);
+  const fetchPosts = useCallback(
+    async (page = 1, reset = false) => {
+      setLoading(true);
+      const res = await fetchFeed(page);
 
-    if (res.success) {
-      if (res.posts.length === 0) {
-        setHasMore(false);
+      if (res.success) {
+        if (res.posts.length === 0) {
+          setHasMore(false);
+        }
+        setPosts((prev) => (reset ? res.posts : [...prev, ...res.posts]));
       }
-      setPosts(prev =>
-        reset ? res.posts : [...prev, ...res.posts]
-      );
-    }
 
-    setLoading(false);
-  }, [fetchFeed]);
+      setLoading(false);
+    },
+    [fetchFeed]
+  );
 
   // load whenever page changes
   useEffect(() => {
@@ -38,16 +39,19 @@ function Feed() {
     if (listRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = listRef.current;
       if (scrollTop + clientHeight >= scrollHeight - 5 && hasMore && !loading) {
-        setCurrPage(prev => prev + 1);
+        setCurrPage((prev) => prev + 1);
       }
     }
   };
 
   // after delete → force reload from page 1
-  const handleDelete = async () => {
-    setCurrPage(1);       // reset pagination
+  const handleDelete = async (postId) => {
+    // frontend se remove
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    // backend se fresh load
+    setCurrPage(1);
     setHasMore(true);
-    await fetchPosts(1, true);  // fresh load from backend
+    await fetchPosts(1, true);
   };
 
   return (
@@ -68,9 +72,7 @@ function Feed() {
         )}
 
         {!hasMore && !loading && (
-          <div className="text-center text-gray-500 my-4">
-            No more posts
-          </div>
+          <div className="text-center text-gray-500 my-4">No more posts</div>
         )}
       </div>
     </div>

@@ -3,11 +3,10 @@ import React, { useEffect, useState } from "react";
 import { FiSettings } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 import { useParams } from "react-router-dom";
+import LeftNavbar from "./LeftNavbar"; // ✅ import sidebar
 
 function Profile({ userData }) {
   const { username } = useParams();
-  // console.log(username);
-  
   const { user: authUser, fetchProfilePosts, fetchUserByUsername } = useAuth();
 
   const [user, setUser] = useState(null);
@@ -24,11 +23,10 @@ function Profile({ userData }) {
 
       try {
         if (userData) setUser(userData);
-        else if (authUser && (!username || authUser.username === username)) setUser(authUser);
+        else if (authUser && (!username || authUser.username === username))
+          setUser(authUser);
         else if (username) {
           const res = await fetchUserByUsername(username);
-          console.log("res",res);
-          
           if (res) setUser(res);
           else {
             setError("User not found");
@@ -36,7 +34,6 @@ function Profile({ userData }) {
           }
         }
       } catch (err) {
-        console.error("Failed to load user:", err);
         setError("Failed to load user profile");
         setUser(null);
       } finally {
@@ -46,8 +43,6 @@ function Profile({ userData }) {
 
     loadUser();
   }, [userData, authUser?.id, authUser?.username, username]);
-  console.log(user);
-  
 
   // Load posts
   useEffect(() => {
@@ -57,10 +52,10 @@ function Profile({ userData }) {
       setLoadingPosts(true);
       try {
         const profilePosts = await fetchProfilePosts(user.id);
-        if (profilePosts?.success && Array.isArray(profilePosts.posts)) setPosts(profilePosts.posts);
+        if (profilePosts?.success && Array.isArray(profilePosts.posts))
+          setPosts(profilePosts.posts);
         else setPosts([]);
       } catch (err) {
-        console.error("Failed to load posts:", err);
         setPosts([]);
       } finally {
         setLoadingPosts(false);
@@ -74,24 +69,8 @@ function Profile({ userData }) {
   const followerCount = user?.followers?.length || 0;
   const followingCount = user?.following?.length || 0;
 
-  // Skeleton loader
   if (loadingUser) {
-    return (
-      <div className="flex flex-col items-center w-full mt-6 px-3 animate-pulse">
-        <div className="flex w-full max-w-5xl flex-col md:flex-row items-center md:items-start gap-8">
-          <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-gray-300" />
-          <div className="flex flex-col flex-1 gap-4">
-            <div className="h-6 w-32 bg-gray-300 rounded" />
-            <div className="flex gap-8">
-              <div className="h-4 w-12 bg-gray-300 rounded" />
-              <div className="h-4 w-16 bg-gray-300 rounded" />
-              <div className="h-4 w-16 bg-gray-300 rounded" />
-            </div>
-            <div className="h-4 w-48 bg-gray-300 rounded" />
-          </div>
-        </div>
-      </div>
-    );
+    return <p className="p-6">Loading profile...</p>;
   }
 
   if (error || !user) {
@@ -103,73 +82,100 @@ function Profile({ userData }) {
   }
 
   return (
-    <div className="flex flex-col items-center w-full mt-6 px-3">
-      {/* Profile Header */}
-      <div className="flex w-full max-w-5xl flex-col md:flex-row items-center md:items-start gap-8">
-        <div className="flex justify-center md:justify-start">
-          <img
-            src={user.profilePicture || "https://via.placeholder.com/180?text=No+Image"}
-            alt={`${user.username || "User"} profile`}
-            className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border"
-            onError={(e) => (e.target.src = "https://via.placeholder.com/180?text=No+Image")}
-          />
-        </div>
-
-        <div className="flex flex-col flex-1">
-          <div className="flex flex-wrap items-center gap-4">
-            <h2 className="text-2xl font-light">{user.username || "Unknown User"}</h2>
-
-            {/* Settings Icon (always visible) */}
-            <button className="p-1 rounded-full hover:bg-gray-100 transition-colors" aria-label="Settings">
-              <FiSettings className="text-2xl" />
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="flex gap-8 mt-4 text-sm">
-            <span>
-              <strong>{postCount}</strong> posts
-            </span>
-            <span>
-              <strong>{followerCount}</strong> followers
-            </span>
-            <span>
-              <strong>{followingCount}</strong> following
-            </span>
-          </div>
-
-          {/* Bio */}
-          <div className="mt-4">
-            {(user.firstName || user.lastName) && (
-              <p className="font-semibold capitalize">{user.firstName} {user.lastName}</p>
-            )}
-            <p className="text-sm text-gray-700 max-w-md">{user.bio || "No bio available"}</p>
-          </div>
-        </div>
+    <div className="flex min-h-screen">
+      {/* ✅ Left Navbar fixed */}
+      <div className="hidden md:block w-64 border-r">
+        <LeftNavbar />
       </div>
 
-      <div className="w-full max-w-5xl border-t mt-8"></div>
+      {/* ✅ Main Profile Content */}
+      <div className="flex-1 flex flex-col items-center mt-6 px-3">
+        {/* Profile Header */}
+        <div className="flex w-full max-w-5xl flex-col md:flex-row items-center md:items-start gap-8">
+          <div className="flex justify-center md:justify-start">
+            <img
+              src={
+                user.profilePicture ||
+                "https://via.placeholder.com/180?text=No+Image"
+              }
+              alt={`${user.username || "User"} profile`}
+              className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border"
+              onError={(e) =>
+                (e.target.src = "https://via.placeholder.com/180?text=No+Image")
+              }
+            />
+          </div>
 
-      {/* Posts */}
-      <div className="w-full max-w-5xl grid grid-cols-3 gap-1 mt-6">
-        {loadingPosts
-          ? [...Array(6)].map((_, i) => (
+          <div className="flex flex-col flex-1">
+            <div className="flex flex-wrap items-center gap-4">
+              <h2 className="text-2xl font-light">
+                {user.username || "Unknown User"}
+              </h2>
+              <button
+                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Settings"
+              >
+                <FiSettings className="text-2xl" />
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-8 mt-4 text-sm">
+              <span>
+                <strong>{postCount}</strong> posts
+              </span>
+              <span>
+                <strong>{followerCount}</strong> followers
+              </span>
+              <span>
+                <strong>{followingCount}</strong> following
+              </span>
+            </div>
+
+            {/* Bio */}
+            <div className="mt-4">
+              {(user.firstName || user.lastName) && (
+                <p className="font-semibold capitalize">
+                  {user.firstName} {user.lastName}
+                </p>
+              )}
+              <p className="text-sm text-gray-700 max-w-md">
+                {user.bio || "No bio available"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full max-w-5xl border-t mt-8"></div>
+
+        {/* Posts */}
+        <div className="w-full max-w-5xl grid grid-cols-3 gap-1 mt-6">
+          {loadingPosts ? (
+            [...Array(6)].map((_, i) => (
               <div key={i} className="aspect-square bg-gray-300 animate-pulse" />
             ))
-          : postCount > 0
-          ? posts.map((post, index) => (
-              <div key={post.id || post._id || `post-${index}`} className="aspect-square">
+          ) : postCount > 0 ? (
+            posts.map((post, index) => (
+              <div
+                key={post.id || post._id || `post-${index}`}
+                className="aspect-square"
+              >
                 <img
                   src={post.image || "https://via.placeholder.com/400"}
                   alt={`${user.username || "User"} post ${index + 1}`}
                   className="w-full h-full object-cover hover:opacity-90 cursor-pointer transition-opacity"
-                  onError={(e) => (e.target.src = "https://via.placeholder.com/400")}
+                  onError={(e) =>
+                    (e.target.src = "https://via.placeholder.com/400")
+                  }
                 />
               </div>
             ))
-          : (
-            <div className="col-span-3 text-center text-gray-500 py-10">No posts yet</div>
+          ) : (
+            <div className="col-span-3 text-center text-gray-500 py-10">
+              No posts yet
+            </div>
           )}
+        </div>
       </div>
     </div>
   );

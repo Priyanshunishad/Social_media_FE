@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route, Routes } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 import Home from './pages/Home'
 import MainLayout from './layout/MainLayout'
 import Signup from './pages/Signup'
@@ -9,6 +9,9 @@ import  { Toaster } from 'react-hot-toast';
 import CreatePostModal from './components/CreatePost'
 import CreatePostPage from './components/CreatePost'
 import Search from './components/Search'
+import ProtectedRoute from './routes/ProtectedRoutes'
+import PublicRoute from './routes/PublicRoute'
+
 // import CreatePost from './components/CreatePost'
 
 const App = () => {
@@ -16,12 +19,16 @@ const App = () => {
      <Routes>
       <Route path="/" element={<MainLayout />} >
         {/* <R  element={<Home/>}/> */}
-        <Route path='' element={<Home/>}/>
-        <Route path='/signup' element={<Signup/>}/>
-        <Route path='/login' element={<Login/>}/>
-        <Route path='/profile/:username'  element={<Profile/>}/>
-        <Route path='/create-post'  element={<CreatePostPage/>}/>
-        <Route path='/search'  element={<Search/>}/>
+        <Route path='' element={<ProtectedRoute><Home/></ProtectedRoute>}/>
+        <Route path='/signup' element={<PublicRoute><Signup/></PublicRoute>}/>
+        <Route path='/login' element={<PublicRoute><Login/></PublicRoute>}/>
+        <Route path='/profile/:username'  element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
+        <Route path='/create-post'  element={<ProtectedRoute><CreatePostPage/></ProtectedRoute>}/>
+        <Route path='/search'  element={<ProtectedRoute><Search/></ProtectedRoute>}/>
+
+          {/* ✅ Catch-all Route */}
+          {/* <Route path="*" element={<NotFound />} /> */}
+          <Route path="*" element={<Navigate to="/" replace />} />
       
       </Route>
     </Routes>
