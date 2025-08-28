@@ -11,7 +11,7 @@ function Rightbar() {
     const fetchUsers = async () => {
       try {
         const data = await getAllUsers();
-         console.log("Fetched users data:", data);
+        console.log("Fetched users data:", data);
         if (data?.users) {
           setAllUsers(
             user
@@ -32,14 +32,16 @@ function Rightbar() {
       const interval = setInterval(fetchUsers, 10000);
       return () => clearInterval(interval);
     }
-  }, [getAllUsers, user?.id]); 
+  }, [getAllUsers, user?.id]);
 
   return (
     <div className="w-[300px] sticky top-[60px] h-screen overflow-y-auto p-4 hidden md:block">
       {/* Header */}
       <div className="flex justify-between text-sm font-semibold text-gray-600">
         <span>Suggestions for you</span>
-        <span className="cursor-pointer text-blue-500 hover:underline">See all</span>
+        <span className="cursor-pointer text-blue-500 hover:underline">
+          See all
+        </span>
       </div>
 
       {/* Followings */}
@@ -53,14 +55,20 @@ function Rightbar() {
           {users.map((u) => (
             <li key={u.id} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
+                
                 <img
-                  src={u.profilePic || "https://i.pravatar.cc/40"}
+                  src={
+                    u.profilePicture ||
+                    `https://ui-avatars.com/api/?name=${u.username}`
+                  }
                   alt={u.username}
                   className="w-10 h-10 rounded-full"
                 />
                 <span className="text-sm font-medium">{u.username}</span>
               </div>
-              <button className="btn btn-xs btn-primary normal-case">Follow</button>
+              <button className="btn btn-xs btn-primary normal-case">
+                Follow
+              </button>
             </li>
           ))}
         </ul>

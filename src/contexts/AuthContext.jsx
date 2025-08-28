@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
       return { success: false, data: [] };
     }
   };
-<<<<<<< HEAD
+
 
   const getAllUsers = async () => {
     try {
@@ -110,12 +110,12 @@ export const AuthProvider = ({ children }) => {
       return { success: false, users: [] };
     }
   };
-=======
+
   const deletePost =async (postId)=>{
     const res=await api.delete(`post/${postId}`)
     return res.data
   }
->>>>>>> vishal
+
   return (
     <AuthContext.Provider
       value={{
