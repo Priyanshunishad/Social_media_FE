@@ -3,20 +3,29 @@ import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 function Rightbar() {
-  const { getAllUsers, user } = useAuth();
+  const { getAllUsers, user, followUser } = useAuth(); // ✅ use followUser from context
   const [users, setAllUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [following, setFollowing] = React.useState([]); // track who you follow
+
+  const handleFollow = async (userId) => {
+    try {
+      await followUser(userId);
+      setFollowing((prev) => [...prev, userId]); // update UI instantly
+    } catch (err) {
+      console.error("Follow failed:", err);
+    }
+  };
 
   React.useEffect(() => {
     const fetchUsers = async () => {
       try {
         const data = await getAllUsers();
-        console.log("Fetched users data:", data);
         if (data?.users) {
           setAllUsers(
             user
               ? data.users.filter((u) => u.id !== user.id) // exclude current user
-              : data.users // if no logged in user, just show all
+              : data.users
           );
         }
       } catch (error) {
@@ -26,7 +35,6 @@ function Rightbar() {
       }
     };
 
-    // ✅ run only if getAllusers exists
     if (getAllUsers) {
       fetchUsers();
       const interval = setInterval(fetchUsers, 10000);
@@ -55,7 +63,6 @@ function Rightbar() {
           {users.map((u) => (
             <li key={u.id} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                
                 <img
                   src={
                     u.profilePicture ||
@@ -66,9 +73,22 @@ function Rightbar() {
                 />
                 <span className="text-sm font-medium">{u.username}</span>
               </div>
-              <button className="btn btn-xs btn-primary normal-case">
-                Follow
-              </button>
+
+              {following.includes(u.id) ? (
+                <button
+                  className="btn btn-xs bg-gray-300 text-gray-700 cursor-default"
+                  disabled
+                >
+                  Following
+                </button>
+              ) : (
+                <button
+                  className="btn btn-xs btn-primary normal-case"
+                  onClick={() => handleFollow(u.id)}
+                >
+                  Follow
+                </button>
+              )}
             </li>
           ))}
         </ul>

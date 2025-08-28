@@ -40,7 +40,7 @@ const handlerLoginForm = async (e) => {
 
     if (res && res.success) {
       toast.success(res.message || "Login successful!");
-      navigate(`/profile/${res.user?.username || ""}`);
+      navigate("/");
     } else {
       toast.error(res?.message || "Invalid credentials. Please try again.");
     }

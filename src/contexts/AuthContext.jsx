@@ -116,6 +116,13 @@ export const AuthProvider = ({ children }) => {
     return res.data
   }
 
+  const followUser = async (userId) => {
+    const res = await api.post(`/user/follow/${userId}`);
+    return res.data;
+  };
+ 
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -136,6 +143,8 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         searchUsers,
         getAllUsers,
+        followUser,
+       
       }}
     >
       {children}
