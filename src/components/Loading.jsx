@@ -1,12 +1,27 @@
 import React from "react";
-import LeftNavbar from "./LeftNavbar";
 
 const ExploreSkeleton = () => {
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      {/* Left Navbar */}
-      <div className="w-64 border-r border-gray-200">
-        <LeftNavbar />
+      {/* Left Navbar Skeleton */}
+      <div className="w-64 border-r border-gray-200 p-6 flex flex-col justify-between animate-pulse">
+        {/* Header */}
+        <div>
+          <div className="h-8 w-40 bg-gray-300 rounded mb-10"></div>
+
+          {/* Nav Items */}
+          <ul className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <li key={i} className="flex items-center gap-x-4">
+                <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                <div className="h-5 w-24 bg-gray-200 rounded"></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Logout Button */}
+        <div className="h-10 w-full bg-gray-300 rounded"></div>
       </div>
 
       {/* Main Content */}
