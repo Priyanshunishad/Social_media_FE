@@ -98,6 +98,17 @@ export const AuthProvider = ({ children }) => {
       return { success: false, data: [] };
     }
   };
+
+  const getAllUsers = async () => {
+    try {
+      const res = await api.get("/user/users");
+      console.log("Get All Users response:", res.data);
+      return res.data; // backend returns { success, users }
+    } catch (err) {
+      console.error("Get All Users API error:", err);
+      return { success: false, users: [] };
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
@@ -115,7 +126,8 @@ export const AuthProvider = ({ children }) => {
         fetchProfilePosts,
         fetchUserByUsername,
         updateProfile,
-        searchUsers
+        searchUsers,
+        getAllUsers,
       }}
     >
       {children}
