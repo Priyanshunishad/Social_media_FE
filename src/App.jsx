@@ -11,6 +11,7 @@ import CreatePostPage from './components/CreatePost'
 import Search from './components/Search'
 import ProtectedRoute from './routes/ProtectedRoutes'
 import PublicRoute from './routes/PublicRoute'
+import Explore from './components/Explore'
 
 // import CreatePost from './components/CreatePost'
 
@@ -25,6 +26,7 @@ const App = () => {
         <Route path='/profile/:username'  element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
         <Route path='/create-post'  element={<ProtectedRoute><CreatePostPage/></ProtectedRoute>}/>
         <Route path='/search'  element={<ProtectedRoute><Search/></ProtectedRoute>}/>
+        <Route path='/explore'  element={<ProtectedRoute><Explore/></ProtectedRoute>}/>
 
           {/* ✅ Catch-all Route */}
           {/* <Route path="*" element={<NotFound />} /> */}

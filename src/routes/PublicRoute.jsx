@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { api } from "../api";
+import Loading from "../components/Loading";
 
 const PublicRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ const PublicRoute = ({ children }) => {
     checkAuth();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loading/>;
 
   // ✅ Agar already login hai → redirect to homepage ("/")
   if (isAuthenticated) {

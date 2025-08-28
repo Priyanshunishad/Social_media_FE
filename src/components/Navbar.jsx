@@ -61,7 +61,7 @@ const Navbar = () => {
               name="search"
               type="text"
               placeholder="Search..."
-              className="input input-bordered w-40 md:w-64 outline-none rounded-full px-4"
+              className="border-1 border-gray-300 py-2 w-40 md:w-64 outline-none rounded-full px-4"
             />
           </form>
 
@@ -98,9 +98,7 @@ const Navbar = () => {
               <li>
                 <Link to={`/profile/${user.username}`}>Profile</Link>
               </li>
-              <li>
-                <Link to="/settings">Settings</Link>
-              </li>
+            
               <li>
                 <button onClick={handleLogout}>Logout</button>
               </li>
