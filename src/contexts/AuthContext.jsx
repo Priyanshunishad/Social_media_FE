@@ -98,6 +98,10 @@ export const AuthProvider = ({ children }) => {
       return { success: false, data: [] };
     }
   };
+  const deletePost =async (postId)=>{
+    const res=await api.delete(`post/${postId}`)
+    return res.data
+  }
   return (
     <AuthContext.Provider
       value={{
@@ -108,6 +112,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         createPost,
         setUser,
+        deletePost,
         fetchFeed,
         getComments,
         commentsOnPost,

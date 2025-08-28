@@ -4,10 +4,13 @@ import { AiFillHeart } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { format } from "timeago.js";
 import Comments from "./Comments";
+import { useAuth } from "../contexts/AuthContext";
+import toast from "react-hot-toast";
 
-function Post({ post }) {
+function Post({ post, onDelete }) {
   const [likes, setLikes] = useState(post.likeCount || 0);
   const [isLiked, setIsLiked] = useState(false);
+  const { user, deletePost } = useAuth();
   const [countComments, setCountComments] = useState(
     post.comments?.length || 0
   );
@@ -25,8 +28,24 @@ function Post({ post }) {
     }
   }, [showComments]);
 
-  const deleteHandler = () => {
-    alert("Post deleted (dummy only, no backend)");
+  const deleteHandler = async () => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      const res = await deletePost(post.id);
+      if (res.success) {
+        onDelete(post.id); // notify parent
+        toast.success(res.message || "Post deleted successfully");
+      } else {
+        toast.error(res.message || "Failed to delete post");
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error(
+        err?.response?.data?.message ||
+          "Something went wrong while deleting post"
+      );
+    }
     setShowMenu(false);
   };
 
@@ -42,7 +61,9 @@ function Post({ post }) {
         <div className="flex items-center gap-3">
           <Link to={"/profile/" + post.user?.username}>
             <img
-              src={post.user?.profilePicture || "https://i.pravatar.cc/150?img=1"}
+              src={
+                post.user?.profilePicture || "https://i.pravatar.cc/150?img=1"
+              }
               alt=""
               className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-100"
             />
@@ -60,22 +81,25 @@ function Post({ post }) {
           </div>
         </div>
 
-        <div className="relative">
-          <FiMoreVertical
-            className="cursor-pointer text-gray-600 hover:text-black"
-            onClick={() => setShowMenu(!showMenu)}
-          />
-          {showMenu && (
-            <div
-              className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-lg shadow-md text-sm cursor-pointer hover:bg-gray-50 py-2"
-              onClick={deleteHandler}
-            >
-              <span className="block text-center text-red-500 font-medium">
-                Delete
-              </span>
-            </div>
-          )}
-        </div>
+        {/* Show delete menu ONLY if logged-in user owns the post */}
+        {user?.id === post.userId && (
+          <div className="relative">
+            <FiMoreVertical
+              className="cursor-pointer text-gray-600 hover:text-black"
+              onClick={() => setShowMenu(!showMenu)}
+            />
+            {showMenu && (
+              <div
+                className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-lg shadow-md text-sm cursor-pointer hover:bg-gray-50 py-2"
+                onClick={deleteHandler}
+              >
+                <span className="block text-center text-red-500 font-medium">
+                  Delete
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -117,7 +141,7 @@ function Post({ post }) {
 
       {/* Native Dialog Modal */}
       <dialog ref={modalRef} id="my_modal_4" className="modal">
-        <Comments post = {post} setShowComments={setShowComments}/>
+        <Comments post={post} setShowComments={setShowComments} />
       </dialog>
     </div>
   );
