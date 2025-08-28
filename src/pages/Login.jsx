@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import toast from 'react-hot-toast'
 // import { useAuth } from "../../contexts/AuthContext";
+// import loginpage from "/image/loginpage.png";  
 
 function Login() {
   const navigate = useNavigate();
@@ -54,10 +55,13 @@ const handlerLoginForm = async (e) => {
     <div className="flex w-full min-h-screen items-center justify-center bg-gray-50">
       <div className="flex w-full max-w-5xl shadow-lg bg-white rounded-lg overflow-hidden">
         {/* LEFT SIDE IMAGE SLIDER */}
-        <div
-          className="hidden md:flex flex-1 relative min-h-[600px] min-w-[400px] bg-no-repeat bg-right bg-cover"
-          style={{ backgroundImage: "url('/image/loginpage.png')" }}
-        >
+         <div
+          className="hidden md:flex flex-1 relative min-h-[670px] min-w-[400px] bg-no-repeat bg-right bg-cover"
+          style={{ backgroundImage: "url('/image/loginPage.png')" }}
+        > 
+   
+        
+
           <div className="absolute top-7 right-[59px] w-[250px] h-[500px] overflow-hidden">
             {["1", "2", "3", "4"].map((num) => (
               <img
