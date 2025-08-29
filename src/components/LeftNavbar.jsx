@@ -8,22 +8,24 @@ import {
   FiPlusCircle,
   FiUser,
   FiLogOut,
+  FiMessageCircle,  // ✅ message icon
 } from "react-icons/fi";
-import { useAuth } from "../contexts/AuthContext"; // ✅ get user + logout
+import { useAuth } from "../contexts/AuthContext";
 
 const LeftNavbar = () => {
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth(); // ✅ useAuth se user aur logout aa raha hai
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
   };
 
-  // ✅ navItems aligned with App.jsx
+  // ✅ navItems aligned with Instagram style
   const navItems = [
     { label: "Home", icon: <FiHome />, link: "/" },
     { label: "Search", icon: <FiSearch />, link: "/search" },
     { label: "Explore", icon: <FiCompass />, link: "/explore" },
+    { label: "Messages", icon: <FiMessageCircle />, link: "/message" }, // ✅ New Messages tab
     { label: "Add Post", icon: <FiPlusCircle />, link: "/create-post" },
     { label: "Profile", icon: <FiUser />, link: `/profile/${user?.username}` },
   ];
