@@ -61,7 +61,10 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: res.data.message };
     } catch (err) {
-      return { success: false, message: err?.response?.data?.message || "Error" };
+      return {
+        success: false,
+        message: err?.response?.data?.message || "Error",
+      };
     }
   };
 
@@ -81,7 +84,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const addReply = async (commentId, reply) => {
-    const res = await api.post(`/post/reply-on-comment/${commentId}`, { text: reply });
+    const res = await api.post(`/post/reply-on-comment/${commentId}`, {
+      text: reply,
+    });
     return res.data;
   };
 
@@ -99,7 +104,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-
   const getAllUsers = async () => {
     try {
       const res = await api.get("/user/users");
@@ -111,18 +115,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const deletePost =async (postId)=>{
-    const res=await api.delete(`post/${postId}`)
-    return res.data
-  }
+  const deletePost = async (postId) => {
+    const res = await api.delete(`post/${postId}`);
+    return res.data;
+  };
 
   const followUser = async (userId) => {
     const res = await api.post(`/user/follow/${userId}`);
     return res.data;
   };
- 
 
-
+  const fetchChat = async (recieverId) => {
+    const res = await api.get(`/chat/fetch/${recieverId}`);
+    return res.data; 
+  };
+ const fetchHistory = async () => {
+  try {
+    const res = await api.get("chat/fetch"); // fetch all chat history
+    return res.data; // ✅ return the response so Message.jsx can use it
+  } catch (err) {
+    console.error("Error fetching chat history:", err);
+    return { success: false, chats: [] };
+  }
+};
   return (
     <AuthContext.Provider
       value={{
@@ -131,6 +146,8 @@ export const AuthProvider = ({ children }) => {
         signup,
         login,
         logout,
+        fetchChat,
+        fetchHistory,
         createPost,
         setUser,
         deletePost,
@@ -144,7 +161,6 @@ export const AuthProvider = ({ children }) => {
         searchUsers,
         getAllUsers,
         followUser,
-       
       }}
     >
       {children}

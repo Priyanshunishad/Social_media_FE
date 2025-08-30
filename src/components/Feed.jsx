@@ -46,20 +46,19 @@ function Feed() {
 
   // after delete → force reload from page 1
   const handleDelete = async (postId) => {
-    // frontend se remove
     setPosts((prev) => prev.filter((p) => p.id !== postId));
-    // backend se fresh load
     setCurrPage(1);
     setHasMore(true);
     await fetchPosts(1, true);
   };
 
   return (
-    <div className="w-[500px]">
+    <div className="w-full max-w-[500px] mx-auto">
       <div
         onScroll={handleScroll}
         ref={listRef}
-        className="h-[calc(100vh-63px)] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+        className="h-[calc(100vh-63px)] overflow-y-auto p-2 
+                   scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
       >
         {posts.map((p) => (
           <Post key={p.id} post={p} onDelete={handleDelete} />

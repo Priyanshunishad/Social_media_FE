@@ -12,7 +12,7 @@ import { useAuth } from "../contexts/AuthContext";
 const Footer = () => {
   const {user}=useAuth()
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 shadow-lg z-50">
+    <div className="fixed  bottom-0 left-0 w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 shadow-lg z-50">
       <div className="flex justify-around items-center py-2 text-white text-2xl">
         {/* Home */}
         <NavLink

@@ -33,7 +33,7 @@ const LeftNavbar = () => {
   return (
     <div
       className={`relative top-0 left-0 h-[80vh] bg-white border-r border-gray-200 
-      p-6 w-64 flex flex-col justify-between
+      p-6 w-64 md:flex flex-col justify-between hidden 
       transform transition-transform duration-300 z-50
       ${open ? "translate-x-0" : "-translate-x-full"} 
       md:translate-x-0`}
