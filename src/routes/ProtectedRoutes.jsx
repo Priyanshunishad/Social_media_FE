@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
       try {
         // Send request with credentials so backend can read cookie
         const res = await api.get("/user", { withCredentials: true });
-        if (res.data?.user) {
+        if (res.data?.user && res.data.user.role === "USER") {
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
