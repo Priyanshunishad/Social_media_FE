@@ -1,20 +1,40 @@
 // src/components/Rightbar.jsx
 import React from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { FiMessageCircle } from "react-icons/fi"; // message icon
 
 function Rightbar() {
-  const { getAllUsers, user, followUser } = useAuth(); // ✅ use followUser from context
+  const { getAllUsers, user, followUser } = useAuth();
   const [users, setAllUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [following, setFollowing] = React.useState([]); // track who you follow
+  const [following, setFollowing] = React.useState([]);
 
   const handleFollow = async (userId) => {
     try {
       await followUser(userId);
-      setFollowing((prev) => [...prev, userId]); // update UI instantly
+      setFollowing((prev) => [...prev, userId]);
     } catch (err) {
       console.error("Follow failed:", err);
     }
+  };
+
+  // ✅ Handle message click → redirect to /message with user
+  const handleMessage = (targetUser) => {
+    const chatUser = {
+      id: targetUser.id,
+      username: targetUser.username,
+      firstName: targetUser.firstName || "",
+      lastName: targetUser.lastName || "",
+      name:
+        `${targetUser.firstName || ""} ${targetUser.lastName || ""}`.trim() ||
+        targetUser.username,
+      avatar:
+        targetUser.profilePicture ||
+        `https://ui-avatars.com/api/?name=${targetUser.username}&size=128&background=random&color=fff`,
+    };
+
+    localStorage.setItem("selectedChatUser", JSON.stringify(chatUser));
+    window.location.href = "/message"; // redirect
   };
 
   React.useEffect(() => {
@@ -23,9 +43,7 @@ function Rightbar() {
         const data = await getAllUsers();
         if (data?.users) {
           setAllUsers(
-            user
-              ? data.users.filter((u) => u.id !== user.id) // exclude current user
-              : data.users
+            user ? data.users.filter((u) => u.id !== user.id) : data.users
           );
         }
       } catch (error) {
@@ -74,21 +92,32 @@ function Rightbar() {
                 <span className="text-sm font-medium">{u.username}</span>
               </div>
 
-              {following.includes(u.id) ? (
+              <div className="flex items-center gap-2">
+                {following.includes(u.id) ? (
+                  <button
+                    className="btn btn-xs bg-gray-300 text-gray-700 cursor-default"
+                    disabled
+                  >
+                    Following
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-xs btn-primary normal-case"
+                    onClick={() => handleFollow(u.id)}
+                  >
+                    Follow
+                  </button>
+                )}
+
+                {/* ✅ Message icon */}
                 <button
-                  className="btn btn-xs bg-gray-300 text-gray-700 cursor-default"
-                  disabled
+                  className="p-1 rounded-full hover:bg-gray-100"
+                  onClick={() => handleMessage(u)}
+                  title="Send Message"
                 >
-                  Following
+                  <FiMessageCircle size={18} className="text-blue-500" />
                 </button>
-              ) : (
-                <button
-                  className="btn btn-xs btn-primary normal-case"
-                  onClick={() => handleFollow(u.id)}
-                >
-                  Follow
-                </button>
-              )}
+              </div>
             </li>
           ))}
         </ul>
