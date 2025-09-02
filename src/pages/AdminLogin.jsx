@@ -1,12 +1,14 @@
 // src/pages/AdminLogin.jsx
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,7 +28,7 @@ export default function AdminLogin() {
       if (data.success) {
         setSuccess(data.message);
         setTimeout(() => {
-          window.location.href = "/admin/dashboard";
+          navigate("/admin");
         }, 1200);
       }
     } catch (err) {
