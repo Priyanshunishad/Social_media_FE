@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -21,14 +22,14 @@ export default function AdminLogin() {
     setSuccess("");
 
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_UR}/admin/login`, formData, {
-        withCredentials: true,
-      });
+      const { data } = await api.post(`/admin/login`, formData)
+        
+      
 
       if (data.success) {
         setSuccess(data.message);
         setTimeout(() => {
-          navigate("/admin");
+          navigate("/admin/dashboard");
         }, 1200);
       }
     } catch (err) {
