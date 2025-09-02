@@ -568,9 +568,15 @@ const Message = () => {
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+<<<<<<< HEAD
                     onKeyPress={handleKeyPress}
                     placeholder={`Type a message to ${selectedChat.name}...`}
                     className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+=======
+                    onKeyDown={handleKeyPress}
+                    placeholder={`Message ${selectedChat.name}...`}
+                    className="flex-1 border rounded-full px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+>>>>>>> 8f92b1f83506944656c030a2e9307b764deedc36
                     disabled={!isConnected}
                   />
                   <button

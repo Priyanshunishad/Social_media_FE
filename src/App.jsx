@@ -13,6 +13,7 @@ import ProtectedRoute from './routes/ProtectedRoutes'
 import PublicRoute from './routes/PublicRoute'
 import Explore from './components/Explore'
 import Message from './components/Message'
+import AdminLogin from './pages/AdminLogin'
 
 // import CreatePost from './components/CreatePost'
 
@@ -24,6 +25,7 @@ const App = () => {
         <Route path='' element={<ProtectedRoute><Home/></ProtectedRoute>}/>
         <Route path='/signup' element={<PublicRoute><Signup/></PublicRoute>}/>
         <Route path='/login' element={<PublicRoute><Login/></PublicRoute>}/>
+        <Route path='/admin' element={<PublicRoute><AdminLogin/></PublicRoute>}/>
         <Route path='/profile/:username'  element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
         <Route path='/create-post'  element={<ProtectedRoute><CreatePostPage/></ProtectedRoute>}/>
         <Route path='/search'  element={<ProtectedRoute><Search/></ProtectedRoute>}/>

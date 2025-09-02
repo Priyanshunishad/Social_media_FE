@@ -42,7 +42,7 @@ const LeftNavbar = () => {
       <div>
         <div className="flex justify-between items-center mb-10">
           <span className="text-2xl font-bold font-serif text-blue-600">
-            Trending Talks
+         
           </span>
           <button
             className="md:hidden text-2xl"
