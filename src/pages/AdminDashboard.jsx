@@ -15,6 +15,12 @@ const AdminDashboard = () => {
   const [admins, setAdmins] = useState([]);
   const [posts, setPosts] = useState([]);
 
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [deleteType, setDeleteType] = useState(""); // "user" or "post"
+  const [selectedId, setSelectedId] = useState(null);
+
   useEffect(() => {
     if (user?.role === "ADMIN") {
       fetchAdminUsers().then((res) => setUsers(res.users || []));
@@ -30,6 +36,33 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  // Open modal
+  const openModal = (type, id) => {
+    setDeleteType(type);
+    setSelectedId(id);
+    setReason("");
+    setIsModalOpen(true);
+  };
+
+  // Confirm deletion request
+  const confirmRequest = async () => {
+    if (!reason.trim()) return;
+
+    try {
+      if (deleteType === "user") {
+        await requestUserDeletion(selectedId, reason);
+        alert("User deletion request sent successfully!");
+      } else if (deleteType === "post") {
+        await requestPostDeletion(selectedId, reason);
+        alert("Post deletion request sent successfully!");
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Error sending deletion request.");
+    }
+  };
 
   return (
     <div className="p-6 bg-base-200 min-h-screen">
@@ -71,9 +104,7 @@ const AdminDashboard = () => {
                   <td>
                     <button
                       className="btn btn-xs btn-error"
-                      onClick={() =>
-                        requestUserDeletion(u.id, "Violation of rules")
-                      }
+                      onClick={() => openModal("user", u.id)}
                     >
                       Request Delete
                     </button>
@@ -99,7 +130,7 @@ const AdminDashboard = () => {
           <table className="table table-zebra w-full">
             <thead>
               <tr>
-                <th>Title</th>
+                <th>Content</th>
                 <th>Author</th>
                 <th>Request Deletion</th>
               </tr>
@@ -107,14 +138,12 @@ const AdminDashboard = () => {
             <tbody>
               {posts.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.title}</td>
-                  <td>{p.author?.username}</td>
+                  <td>{p.content}</td>
+                  <td>{p.user?.username}</td>
                   <td>
                     <button
                       className="btn btn-xs btn-error"
-                      onClick={() =>
-                        requestPostDeletion(p.id, "Inappropriate content")
-                      }
+                      onClick={() => openModal("post", p.id)}
                     >
                       Request Delete
                     </button>
@@ -132,6 +161,35 @@ const AdminDashboard = () => {
           </table>
         </div>
       </div>
+
+      {/* 🔹 Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+            <h3 className="text-lg font-bold mb-4">
+              Reason for Deleting {deleteType === "user" ? "User" : "Post"}
+            </h3>
+            <textarea
+              className="textarea textarea-bordered w-full"
+              placeholder="Enter reason..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-error"
+                onClick={confirmRequest}
+                disabled={!reason.trim()}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
