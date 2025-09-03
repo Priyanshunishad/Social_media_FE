@@ -140,54 +140,83 @@ export const AuthProvider = ({ children }) => {
       return { success: false, chats: [] };
     }
   };
+// ==========================
+// 🔹 ADMIN FUNCTIONS
+// ==========================
 
-  // ==========================
-  // 🔹 ADMIN FUNCTIONS
-  // ==========================
-  const loginAdmin = async (credentials) => {
-    const res = await api.post("/admin/login", credentials);
-    return res.data;
-  };
+// Auth (Both Admin & Super Admin)
+const loginAdmin = async (input) => {
+  const res = await api.post("/admin/login", input);
+  return res.data;
+};
 
-  const fetchAdminUsers = async () => {
-    try {
-      const res = await api.get("/admin");
-      return res.data;
-    } catch {
-      return { success: false, users: [] };
-    }
-  };
+// ==========================
+// 🔹 Admin Functions
+// ==========================
+const fetchAdminUsers = async () => {
+  const res = await api.get("/admin/users");
+  return res.data;
+};
 
-  const fetchAdmins = async () => {
-    try {
-      const res = await api.get("/admin/admins");
-      return res.data;
-    } catch {
-      return { success: false, admins: [] };
-    }
-  };
+const fetchAdmins = async () => {
+  const res = await api.get("/admin/admins");
+  return res.data;
+};
 
-  const deleteUser = async (userId) => {
-    try {
-      const res = await api.delete(`/admin/${userId}`);
-      return res.data;
-    } catch {
-      return { success: false };
-    }
-  };
+const requestUserDeletion = async (id, reason) => {
+  const res = await api.post(`/admin/request-user-deletion/${id}`, { reason });
+  return res.data;
+};
 
-  const createAdmin = async (adminData) => {
-    try {
-      const res = await api.post("/admin/create-admin", adminData);
-      return res.data;
-    } catch {
-      return { success: false };
-    }
-  };
+const getAllPostsForAdmin = async () => {
+  const res = await api.get("/admin/posts");
+  return res.data;
+};
 
-  // ==========================
-  // 🔹 CONTEXT VALUE
-  // ==========================
+const requestPostDeletion = async (postId, reason) => {
+  const res = await api.post(`/admin/request-post-deletion/${postId}`, { reason });
+  return res.data;
+};
+
+// ==========================
+// 🔹 Super Admin Functions
+// ==========================
+const createAdmin = async (data) => {
+  const res = await api.post("/admin/create-admin", data);
+  return res.data;
+};
+
+const editAdmin = async (id, data) => {
+  const res = await api.put(`/admin/edit-admin/${id}`, data);
+  return res.data;
+};
+
+const deleteUser = async (id) => {
+  const res = await api.delete(`/admin/delete-user/${id}`);
+  return res.data;
+};
+
+const getPendingUserDeletions = async () => {
+  const res = await api.get("/admin/pending-user-deletions");
+  return res.data;
+};
+
+const handleUserDeletion = async (requestId, action) => {
+  const res = await api.patch(`/admin/handle-user-deletion/${requestId}`, { action });
+  return res.data;
+};
+
+const getPendingPostDeletions = async () => {
+  const res = await api.get("/admin/pending-post-deletions");
+  return res.data;
+};
+
+const handlePostDeletion = async (requestId, action) => {
+  const res = await api.patch(`/admin/handle-post-deletion/${requestId}`, { action });
+  return res.data;
+};
+
+  
   return (
     <AuthContext.Provider
       value={{
@@ -224,6 +253,15 @@ export const AuthProvider = ({ children }) => {
         fetchAdmins,
         deleteUser,
         createAdmin,
+        handlePostDeletion,
+        getAllPostsForAdmin,
+        getPendingPostDeletions,
+        requestPostDeletion,
+        handleUserDeletion,
+        getPendingUserDeletions,
+        editAdmin,
+        requestUserDeletion
+
       }}
     >
       {children}
