@@ -1,39 +1,42 @@
-// AdminRoute.jsx
+// SuperAdminRoute.jsx
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { api } from "../api";
 import Loading from "../components/Loading";
 
-const AdminRoute = ({ children }) => {
+const SuperAdminRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState(null);
+  const [isAllowed, setIsAllowed] = useState(false);
 
   useEffect(() => {
-    const checkUserRole = async () => {
+    const checkSuperAdmin = async () => {
       try {
         // 🔑 Hit API that returns user info (with role)
         const res = await api.get("/user");
-        setRole(res.data?.user?.role || null);
+        const role = res.data?.user?.role;
+
+        if (role === "SUPER-ADMIN") {
+          setIsAllowed(true);
+        } else {
+          setIsAllowed(false);
+        }
       } catch (error) {
-        setRole(null);
+        setIsAllowed(false);
       } finally {
         setLoading(false);
       }
     };
 
-    checkUserRole();
+    checkSuperAdmin();
   }, []);
 
   if (loading) return <Loading />;
 
-  // ✅ Navigate based on role
-  if (role === "ADMIN") {
-    return children; // shows admin route content
-  } else if (role === "SUPER-ADMIN") {
-    return <Navigate to="/super-admin/dashboard" replace />;
-  } else {
+  if (!isAllowed) {
     return <Navigate to="/unauthorized" replace />;
   }
+
+  return children;
 };
 
-export default AdminRoute;
+export default SuperAdminRoute;

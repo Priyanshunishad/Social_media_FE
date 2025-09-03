@@ -202,7 +202,7 @@ const getPendingUserDeletions = async () => {
 };
 
 const handleUserDeletion = async (requestId, action) => {
-  const res = await api.patch(`/admin/handle-user-deletion/${requestId}`, { action });
+  const res = await api.patch(`/admin/handle-user-deletion/${requestId}`, { action: action.toUpperCase() });
   return res.data;
 };
 
@@ -212,7 +212,7 @@ const getPendingPostDeletions = async () => {
 };
 
 const handlePostDeletion = async (requestId, action) => {
-  const res = await api.patch(`/admin/handle-post-deletion/${requestId}`, { action });
+  const res = await api.patch(`/admin/handle-post-deletion/${requestId}`, { action: action.toUpperCase()});
   return res.data;
 };
 
@@ -251,6 +251,7 @@ const handlePostDeletion = async (requestId, action) => {
         loginAdmin,
         fetchAdminUsers,
         fetchAdmins,
+
         deleteUser,
         createAdmin,
         handlePostDeletion,

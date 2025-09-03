@@ -18,6 +18,7 @@ import Message from './components/Message'
 import AdminRoute from './routes/AdminRoutes'
 import AdminDashboard from './pages/AdminDashboard'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
+import SuperAdminRoute from './routes/SuperAdminRoutes'
 
 // import CreatePost from './components/CreatePost'
 
@@ -31,7 +32,7 @@ const App = () => {
         <Route path='/login' element={<PublicRoute><Login/></PublicRoute>}/>
         <Route path='/admin' element={<PublicRoute><AdminLogin/></PublicRoute>}/>
         <Route path='/admin/dashboard' element={<AdminRoute><AdminDashboard/></AdminRoute>}/>
-        <Route path='/super-admin/dashboard' element={<AdminRoute><SuperAdminDashboard/></AdminRoute>}/>
+        <Route path='/super-admin/dashboard' element={<SuperAdminRoute><SuperAdminDashboard/></SuperAdminRoute>}/>
 
 
         <Route path='/profile/:username'  element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
