@@ -47,6 +47,7 @@ const SuperAdminDashboard = () => {
     getPendingPostDeletions,
     handleUserDeletion,
     handlePostDeletion,
+     createAdmin, 
     postDeleteDirectly,
     deleteUser,
   } = useAuth();
@@ -69,6 +70,42 @@ const SuperAdminDashboard = () => {
 
   // Request Stats
   const [requestStats, setRequestStats] = useState({ users: 0, posts: 0 });
+
+   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [adminForm, setAdminForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+  });
+
+
+   const handleCreateAdmin = async () => {
+    try {
+      const res = await createAdmin(adminForm);
+      if (res.success) {
+        showToast("Admin created successfully");
+        setIsCreateModalOpen(false);
+        setAdminForm({
+          username: "",
+          email: "",
+          password: "",
+          firstName: "",
+          lastName: "",
+        });
+
+        // refresh admin list
+        const resAdmins = await fetchAdmins();
+        setAdmins(resAdmins?.admins || []);
+      } else {
+        showToast(res.message || "Failed to create admin", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error creating admin", "error");
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {

@@ -217,7 +217,7 @@ const handlePostDeletion = async (requestId, action) => {
 };
 
 const postDeleteDirectly=async(postId)=>{
-  const res=await api.delete(`/admin//post-deletion/${postId}`)
+  const res=await api.delete(`/admin/post-deletion/${postId}`)
   return res.data
 }
   
