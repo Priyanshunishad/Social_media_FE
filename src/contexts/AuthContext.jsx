@@ -216,6 +216,10 @@ const handlePostDeletion = async (requestId, action) => {
   return res.data;
 };
 
+const postDeleteDirectly=async(postId)=>{
+  const res=await api.delete(`/admin//post-deletion/${postId}`)
+  return res.data
+}
   
   return (
     <AuthContext.Provider
@@ -254,6 +258,7 @@ const handlePostDeletion = async (requestId, action) => {
 
         deleteUser,
         createAdmin,
+        postDeleteDirectly,
         handlePostDeletion,
         getAllPostsForAdmin,
         getPendingPostDeletions,

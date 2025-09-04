@@ -1,584 +1,505 @@
 // src/pages/SuperAdminDashboard.jsx
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import toast from "react-hot-toast";
+import {
+  User,
+  Mail,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Shield,
+  Check,
+  X,
+} from "lucide-react";
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+} from "chart.js";
+import { Pie, Bar, Line, Doughnut } from "react-chartjs-2";
 
-/**
- * SuperAdminDashboard (UI-polished)
- * - Uses DaisyUI/Tailwind for a professional, production-ready look
- * - No functionality changes to your existing data flow or handlers
- * - Adds subtle UX niceties: loading skeletons, empty states, better hierarchy, responsive tables
- */
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement
+);
 
 const SuperAdminDashboard = () => {
   const {
     fetchAdminUsers,
     fetchAdmins,
-    createAdmin,
-    editAdmin,
-    deleteUser,
-    getPendingUserDeletions,
-    handleUserDeletion,
     getAllPostsForAdmin,
+    getPendingUserDeletions,
     getPendingPostDeletions,
+    handleUserDeletion,
     handlePostDeletion,
+    postDeleteDirectly,
+    deleteUser,
   } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [posts, setPosts] = useState([]);
-  const [pendingUserDeletions, setPendingUserDeletions] = useState([]);
-  const [pendingPostDeletions, setPendingPostDeletions] = useState([]);
-  const [tab, setTab] = useState("users");
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [pendingPosts, setPendingPosts] = useState([]);
+  const [expandedUser, setExpandedUser] = useState(null);
 
-  // Modal states
-  const [editingAdmin, setEditingAdmin] = useState(null);
-  const [creatingAdmin, setCreatingAdmin] = useState(false);
+  // Modals
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    password: "",
-  });
+  // Confirm Modal
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(() => () => {});
 
-  // Local UI state (purely presentational)
-  const [loading, setLoading] = useState(true);
+  // Request Stats
+  const [requestStats, setRequestStats] = useState({ users: 0, posts: 0 });
 
-  // Fetch dashboard data
   useEffect(() => {
-    (async () => {
+    const loadData = async () => {
       try {
-        setLoading(true);
-        const u = await fetchAdminUsers();
-        setUsers(u?.users || []);
+        const resUsers = await fetchAdminUsers();
+        setUsers(resUsers?.users || []);
 
-        const a = await fetchAdmins();
-        setAdmins(a?.admins || []);
+        const resAdmins = await fetchAdmins();
+        setAdmins(resAdmins?.admins || []);
 
-        const p = await getAllPostsForAdmin();
-        setPosts(p?.posts || []);
+        const resPosts = await getAllPostsForAdmin();
+        setPosts(resPosts?.posts || []);
 
-        const pud = await getPendingUserDeletions();
-        setPendingUserDeletions(pud?.requests || []);
+        const resPendingU = await getPendingUserDeletions();
+        setPendingUsers(resPendingU?.requests || []);
 
-        const ppd = await getPendingPostDeletions();
-        setPendingPostDeletions(ppd?.requests || []);
-      } catch (error) {
-        toast.error("Failed to load dashboard data");
-      } finally {
-        setLoading(false);
+        const resPendingP = await getPendingPostDeletions();
+        setPendingPosts(resPendingP?.requests || []);
+
+        setRequestStats({
+          users: resPendingU?.requests?.length || 0,
+          posts: resPendingP?.requests?.length || 0,
+        });
+      } catch (err) {
+        console.error(err);
+        showToast("Failed to fetch data", "error");
       }
-    })();
+    };
+    loadData();
   }, []);
 
-  // ====== CREATE ADMIN ======
-  const startCreate = () => {
-    setForm({ username: "", email: "", firstName: "", lastName: "", password: "" });
-    setCreatingAdmin(true);
+  const showToast = (msg, type = "success") => {
+    const toast = document.createElement("div");
+    toast.className = `alert ${
+      type === "error" ? "alert-error" : "alert-success"
+    } shadow-lg fixed bottom-5 right-5 w-80 animate-fadeIn z-[1000]`;
+    toast.innerHTML = `<span>${msg}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
   };
 
-  const saveCreate = async () => {
-    try {
-      await createAdmin(form);
-      const a = await fetchAdmins();
-      setAdmins(a?.admins || []);
-      setCreatingAdmin(false);
-      toast.success("Admin created successfully!");
-    } catch (error) {
-      toast.error("Failed to create admin");
-    }
-  };
-
-  // ====== EDIT ADMIN ======
-  const startEdit = (admin) => {
-    setEditingAdmin(admin.id);
-    setForm({
-      username: admin.username,
-      email: admin.email,
-      firstName: admin.firstName,
-      lastName: admin.lastName,
-      password: "", // Not editable
-    });
-  };
-
-  const saveEdit = async () => {
-    try {
-      await editAdmin(editingAdmin, form);
-      const a = await fetchAdmins();
-      setAdmins(a?.admins || []);
-      setEditingAdmin(null);
-      toast.success("Admin updated successfully!");
-    } catch (error) {
-      toast.error("Failed to update admin");
-    }
-  };
-
-  // ====== USER ACTIONS ======
-  const handleDeleteUser = async (id) => {
-    try {
-      await deleteUser(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-      toast.success("User deleted successfully!");
-    } catch (error) {
-      toast.error("Failed to delete user");
-    }
-  };
-
-  const handleApproveUserDeletion = async (id) => {
-    try {
-      await handleUserDeletion(id, "APPROVE");
-      setPendingUserDeletions((prev) => prev.filter((r) => r.id !== id));
-      toast.success("User deletion approved");
-    } catch (error) {
-      toast.error("Failed to approve request");
-    }
-  };
-
-  const handleRejectUserDeletion = async (id) => {
-    try {
-      await handleUserDeletion(id, "REJECT");
-      setPendingUserDeletions((prev) => prev.filter((r) => r.id !== id));
-      toast.success("User deletion rejected");
-    } catch (error) {
-      toast.error("Failed to reject request");
-    }
-  };
-
-  const handleApprovePostDeletion = async (id) => {
-    try {
-      await handlePostDeletion(id, "APPROVE");
-      setPendingPostDeletions((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Post deletion approved");
-    } catch (error) {
-      toast.error("Failed to approve post deletion");
-    }
-  };
-
-  const handleRejectPostDeletion = async (id) => {
-    try {
-      await handlePostDeletion(id, "REJECT");
-      setPendingPostDeletions((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Post deletion rejected");
-    } catch (error) {
-      toast.error("Failed to reject post deletion");
-    }
-  };
-
-  // Derived stats (UI only)
-  const stats = useMemo(
-    () => [
-      { label: "Total Users", value: users?.length || 0 },
-      { label: "Admins", value: admins?.length || 0 },
-      { label: "Posts", value: posts?.length || 0 },
-      { label: "Pending Requests", value: (pendingUserDeletions?.length || 0) + (pendingPostDeletions?.length || 0) },
+  // 📊 Analytics
+  const chartData = {
+    labels: ["Users", "Admins", "Posts"],
+    datasets: [
+      {
+        data: [users.length, admins.length, posts.length],
+        backgroundColor: ["#3B82F6", "#10B981", "#F59E0B"],
+      },
     ],
-    [users, admins, posts, pendingUserDeletions, pendingPostDeletions]
-  );
+  };
 
-  // Small helpers
-  const TabButton = ({ id, children }) => (
-    <button
-      onClick={() => setTab(id)}
-      className={`tab tab-lg ${tab === id ? "tab-active" : ""}`}
-    >
-      {children}
-    </button>
+  const postsPerUser = users.map(
+    (u) => posts.filter((p) => p.user?.id === u.id).length
   );
+  const barData = {
+    labels: users.map((u) => u.username),
+    datasets: [
+      { label: "Posts per User", data: postsPerUser, backgroundColor: "#6366F1" },
+    ],
+  };
 
-  const EmptyState = ({ title, subtitle, action }) => (
-    <div className="flex flex-col items-center justify-center gap-2 p-10 text-center">
-      <div className="text-4xl">🗂️</div>
-      <h3 className="text-lg font-semibold">{title}</h3>
-      {subtitle && <p className="text-base-content/70">{subtitle}</p>}
-      {action}
-    </div>
-  );
+  const postsOverTime = posts.reduce((acc, post) => {
+    const date = new Date(post.createdAt).toLocaleDateString();
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {});
+  const lineData = {
+    labels: Object.keys(postsOverTime),
+    datasets: [
+      {
+        label: "Posts over Time",
+        data: Object.values(postsOverTime),
+        borderColor: "#F43F5E",
+        backgroundColor: "#FCA5A5",
+        tension: 0.3,
+      },
+    ],
+  };
 
-  const LoadingRows = ({ rows = 4, cols = 4 }) => (
-    <tbody>
-      {Array.from({ length: rows }).map((_, r) => (
-        <tr key={r}>
-          {Array.from({ length: cols }).map((__, c) => (
-            <td key={c} className="py-3">
-              <div className="skeleton h-4 w-full" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </tbody>
-  );
+  const doughnutData = {
+    labels: ["With Image", "Without Image"],
+    datasets: [
+      {
+        data: [
+          posts.filter((p) => p.image).length,
+          posts.filter((p) => !p.image).length,
+        ],
+        backgroundColor: ["#34D399", "#9CA3AF"],
+      },
+    ],
+  };
+
+  const requestData = {
+    labels: ["User Requests", "Post Requests"],
+    datasets: [
+      {
+        data: [requestStats.users, requestStats.posts],
+        backgroundColor: ["#F87171", "#60A5FA"],
+      },
+    ],
+  };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Page header */}
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Super Admin Dashboard</h1>
-          <p className="text-base-content/70">Manage users, admins, posts and review deletion requests.</p>
+    <div className="p-6 bg-base-200 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
+        <Shield className="w-8 h-8 text-primary" />
+        Super Admin Dashboard
+      </h1>
+
+      {/* Analytics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">System Overview</h2>
+          <Pie data={chartData} />
         </div>
-        {/* Quick stats */}
-        <div className="stats shadow bg-base-100">
-          {stats.map((s, i) => (
-            <div className="stat" key={i}>
-              <div className="stat-title">{s.label}</div>
-              <div className="stat-value text-primary">{s.value}</div>
-            </div>
-          ))}
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Posts per User</h2>
+          <Bar data={barData} />
+        </div>
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Posts over Time</h2>
+          <Line data={lineData} />
+        </div>
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Image vs Text</h2>
+          <Doughnut data={doughnutData} />
+        </div>
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Deletion Requests</h2>
+          <Pie data={requestData} />
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="tabs tabs-boxed w-full mb-6">
-        <TabButton id="users">Users</TabButton>
-        <TabButton id="admins">Admins</TabButton>
-        <TabButton id="pendingUserDeletions">User Deletions</TabButton>
-        <TabButton id="pendingPostDeletions">Post Deletions</TabButton>
+      {/* Pending Requests */}
+      <div className="mb-10">
+        <h2 className="text-2xl font-semibold mb-4">Pending Deletion Requests</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* User Requests */}
+          <div className="bg-white p-4 shadow rounded-lg">
+            <h3 className="font-bold mb-2">User Deletion Requests</h3>
+            {pendingUsers.length > 0 ? (
+              pendingUsers.map((r) => (
+                <div
+                  key={r.id}
+                  className="p-3 border rounded-lg flex justify-between items-center mb-2"
+                >
+                  <span>
+                    {r.userId} - {r.reason}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      className="btn btn-success btn-xs flex items-center gap-1"
+                      onClick={() => {
+                        setConfirmMessage("Approve this user deletion request?");
+                        setConfirmAction(() => async () => {
+                          await handleUserDeletion(r.id, "approve");
+                          setPendingUsers((prev) =>
+                            prev.filter((req) => req.id !== r.id)
+                          );
+                          showToast("User deletion approved");
+                        });
+                        setConfirmOpen(true);
+                      }}
+                    >
+                      <Check className="w-4 h-4" /> Approve
+                    </button>
+                    <button
+                      className="btn btn-error btn-xs flex items-center gap-1"
+                      onClick={() => {
+                        setConfirmMessage("Reject this user deletion request?");
+                        setConfirmAction(() => async () => {
+                          await handleUserDeletion(r.id, "reject");
+                          setPendingUsers((prev) =>
+                            prev.filter((req) => req.id !== r.id)
+                          );
+                          showToast("User deletion rejected");
+                        });
+                        setConfirmOpen(true);
+                      }}
+                    >
+                      <X className="w-4 h-4" /> Reject
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No requests</p>
+            )}
+          </div>
+
+          {/* Post Requests */}
+          <div className="bg-white p-4 shadow rounded-lg">
+            <h3 className="font-bold mb-2">Post Deletion Requests</h3>
+            {pendingPosts.length > 0 ? (
+              pendingPosts.map((r) => (
+                <div
+                  key={r.id}
+                  className="p-3 border rounded-lg flex justify-between items-center mb-2"
+                >
+                  <span>
+                    {r.postId} - {r.reason}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      className="btn btn-success btn-xs flex items-center gap-1"
+                      onClick={() => {
+                        setConfirmMessage("Approve this post deletion request?");
+                        setConfirmAction(() => async () => {
+                          await handlePostDeletion(r.id, "approve");
+                          setPendingPosts((prev) =>
+                            prev.filter((req) => req.id !== r.id)
+                          );
+                          showToast("Post deletion approved");
+                        });
+                        setConfirmOpen(true);
+                      }}
+                    >
+                      <Check className="w-4 h-4" /> Approve
+                    </button>
+                    <button
+                      className="btn btn-error btn-xs flex items-center gap-1"
+                      onClick={() => {
+                        setConfirmMessage("Reject this post deletion request?");
+                        setConfirmAction(() => async () => {
+                          await handlePostDeletion(r.id, "reject");
+                          setPendingPosts((prev) =>
+                            prev.filter((req) => req.id !== r.id)
+                          );
+                          showToast("Post deletion rejected");
+                        });
+                        setConfirmOpen(true);
+                      }}
+                    >
+                      <X className="w-4 h-4" /> Reject
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No requests</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Users */}
-      {tab === "users" && (
-        <div className="card bg-base-100 shadow-md">
-          <div className="card-body gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="card-title">All Users</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th className="w-40 text-right">Actions</th>
-                  </tr>
-                </thead>
-                {loading ? (
-                  <LoadingRows rows={5} cols={3} />
-                ) : users?.length ? (
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id} className="hover">
-                        <td className="font-medium">{u.username}</td>
-                        <td className="text-base-content/80">{u.email}</td>
-                        <td>
-                          <div className="flex justify-end">
-                            <button
-                              className="btn btn-error btn-sm"
-                              onClick={() => handleDeleteUser(u.id)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                ) : (
-                  <tbody>
-                    <tr>
-                      <td colSpan={3}>
-                        <EmptyState
-                          title="No users found"
-                          subtitle="Once users register, they will appear here."
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                )}
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Users with Posts */}
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Users & Posts</h2>
+        <div className="space-y-4">
+          {users.map((u) => {
+            const userPosts = posts.filter((p) => p.user?.id === u.id);
+            const expanded = expandedUser === u.id;
+            return (
+              <div key={u.id} className="card bg-white shadow-md">
+                <div className="card-body">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={
+                          u.profilePicture ||
+                          `https://api.dicebear.com/7.x/identicon/svg?seed=${u.username}`
+                        }
+                        alt="avatar"
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <p className="font-semibold flex items-center gap-2">
+                          <User className="w-5 h-5 text-primary" /> {u.username}
+                        </p>
+                        <p className="text-sm text-gray-500 flex items-center gap-2">
+                          <Mail className="w-4 h-4" /> {u.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {/* Expand button */}
+                      <button
+                        className="btn btn-outline btn-xs"
+                        onClick={() =>
+                          setExpandedUser(expanded ? null : u.id)
+                        }
+                      >
+                        {expanded ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </button>
 
-      {/* Admins */}
-      {tab === "admins" && (
-        <div className="card bg-base-100 shadow-md">
-          <div className="card-body gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className="card-title">Admins</h2>
-              <button className="btn btn-primary btn-sm" onClick={startCreate}>
-                + Create Admin
+                      {/* Direct Delete User */}
+                      <button
+                        className="btn btn-error btn-xs flex items-center gap-1"
+                        onClick={() => {
+                          setConfirmMessage("Are you sure you want to delete this user?");
+                          setConfirmAction(() => async () => {
+                            await deleteUser(u.id);
+                            setUsers((prev) =>
+                              prev.filter((usr) => usr.id !== u.id)
+                            );
+                            showToast("User deleted successfully");
+                          });
+                          setConfirmOpen(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" /> Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {expanded && (
+                    <div className="mt-4 border-t pt-4">
+                      <h3 className="font-semibold mb-2">Posts</h3>
+                      {userPosts.length > 0 ? (
+                        userPosts.map((p) => (
+                          <div
+                            key={p.id}
+                            className="p-3 border rounded-lg flex justify-between items-center"
+                          >
+                            <p className="truncate max-w-xs">{p.content}</p>
+                            <div className="flex gap-2">
+                              <button
+                                className="btn btn-info btn-xs flex items-center gap-1"
+                                onClick={() => {
+                                  setSelectedPost(p);
+                                  setIsPostModalOpen(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4" /> View
+                              </button>
+                              <button
+                                className="btn btn-error btn-xs flex items-center gap-1"
+                                onClick={() => {
+                                  setConfirmMessage("Are you sure you want to delete this post?");
+                                  setConfirmAction(() => async () => {
+                                    await postDeleteDirectly(p.id);
+                                    setPosts((prev) =>
+                                      prev.filter((post) => post.id !== p.id)
+                                    );
+                                    showToast("Post deleted successfully");
+                                  });
+                                  setConfirmOpen(true);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" /> Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-sm">No posts</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* View Post Modal */}
+      {isPostModalOpen && selectedPost && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-bold mb-4">Post Details</h3>
+            <div className="mb-4">
+              <div className="flex items-center gap-3 mb-3">
+                <img
+                  src={
+                    selectedPost.user?.profilePicture ||
+                    `https://api.dicebear.com/7.x/identicon/svg?seed=${selectedPost.user?.username}`
+                  }
+                  alt="avatar"
+                  className="w-10 h-10 rounded-full"
+                />
+                <div>
+                  <p className="font-semibold">{selectedPost.user?.username}</p>
+                  <p className="text-sm text-gray-500">
+                    {selectedPost.user?.email}
+                  </p>
+                </div>
+              </div>
+              <p className="mb-3">{selectedPost.content}</p>
+              {selectedPost.image && (
+                <img
+                  src={selectedPost.image}
+                  alt="post"
+                  className="rounded-lg mb-3 max-h-60 object-cover"
+                />
+              )}
+              <p className="text-sm text-gray-500">
+                Likes: {selectedPost.likeCount} |{" "}
+                {new Date(selectedPost.createdAt).toLocaleString()}
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="btn btn-primary"
+                onClick={() => setIsPostModalOpen(false)}
+              >
+                Close
               </button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th className="w-40 text-right">Actions</th>
-                  </tr>
-                </thead>
-                {loading ? (
-                  <LoadingRows rows={4} cols={5} />
-                ) : admins?.length ? (
-                  <tbody>
-                    {admins.map((a) => (
-                      <tr key={a.id} className="hover">
-                        <td className="font-medium">{a.username}</td>
-                        <td className="text-base-content/80">{a.email}</td>
-                        <td>{a.firstName || "—"}</td>
-                        <td>{a.lastName || "—"}</td>
-                        <td>
-                          <div className="flex justify-end">
-                            <button className="btn btn-outline btn-sm" onClick={() => startEdit(a)}>
-                              Edit
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                ) : (
-                  <tbody>
-                    <tr>
-                      <td colSpan={5}>
-                        <EmptyState
-                          title="No admins yet"
-                          subtitle="Create your first admin to get started."
-                          action={
-                            <button className="btn btn-primary btn-sm" onClick={startCreate}>
-                              Create Admin
-                            </button>
-                          }
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                )}
-              </table>
-            </div>
           </div>
         </div>
       )}
 
-      {/* Pending User Deletions */}
-      {tab === "pendingUserDeletions" && (
-        <div className="card bg-base-100 shadow-md">
-          <div className="card-body gap-4">
-            <h2 className="card-title">Pending User Deletion Requests</h2>
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Request ID</th>
-                    <th>User</th>
-                    <th>Reason</th>
-                    <th className="w-60 text-right">Actions</th>
-                  </tr>
-                </thead>
-                {loading ? (
-                  <LoadingRows rows={4} cols={4} />
-                ) : pendingUserDeletions?.length ? (
-                  <tbody>
-                    {pendingUserDeletions.map((r) => (
-                      <tr key={r.id} className="hover">
-                        <td className="font-medium">{r.id}</td>
-                        <td>
-                          <span className="badge badge-ghost">{r.userId}</span>
-                        </td>
-                        <td className="max-w-xl">
-                          <div className="truncate" title={r.reason}>{r.reason}</div>
-                        </td>
-                        <td>
-                          <div className="flex justify-end gap-2">
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => handleApproveUserDeletion(r.id)}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="btn btn-error btn-sm"
-                              onClick={() => handleRejectUserDeletion(r.id)}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                ) : (
-                  <tbody>
-                    <tr>
-                      <td colSpan={4}>
-                        <EmptyState title="No pending user deletion requests" />
-                      </td>
-                    </tr>
-                  </tbody>
-                )}
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Pending Post Deletions */}
-      {tab === "pendingPostDeletions" && (
-        <div className="card bg-base-100 shadow-md">
-          <div className="card-body gap-4">
-            <h2 className="card-title">Pending Post Deletion Requests</h2>
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Request ID</th>
-                    <th>Post</th>
-                    <th>Reason</th>
-                    <th className="w-60 text-right">Actions</th>
-                  </tr>
-                </thead>
-                {loading ? (
-                  <LoadingRows rows={4} cols={4} />
-                ) : pendingPostDeletions?.length ? (
-                  <tbody>
-                    {pendingPostDeletions.map((r) => (
-                      <tr key={r.id} className="hover">
-                        <td className="font-medium">{r.id}</td>
-                        <td>
-                          <span className="badge badge-ghost">{r.postId}</span>
-                        </td>
-                        <td className="max-w-xl">
-                          <div className="truncate" title={r.reason}>{r.reason}</div>
-                        </td>
-                        <td>
-                          <div className="flex justify-end gap-2">
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => handleApprovePostDeletion(r.id)}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="btn btn-error btn-sm"
-                              onClick={() => handleRejectPostDeletion(r.id)}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                ) : (
-                  <tbody>
-                    <tr>
-                      <td colSpan={4}>
-                        <EmptyState title="No pending post deletion requests" />
-                      </td>
-                    </tr>
-                  </tbody>
-                )}
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Create Admin Modal */}
-      {creatingAdmin && (
-        <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-md">
-            <h3 className="font-bold text-lg">Create Admin</h3>
-            <div className="mt-4 space-y-3">
-              <input
-                type="text"
-                placeholder="Username"
-                className="input input-bordered w-full"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="input input-bordered w-full"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  className="input input-bordered w-full"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  className="input input-bordered w-full"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                />
-              </div>
-              <input
-                type="password"
-                placeholder="Password"
-                className="input input-bordered w-full"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
-            </div>
-            <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setCreatingAdmin(false)}>
+      {/* ✅ Confirmation Modal */}
+      {confirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[1000]">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-[400px]">
+            <h3 className="text-lg font-bold mb-4">Confirm Action</h3>
+            <p className="mb-6">{confirmMessage}</p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="btn btn-outline"
+                onClick={() => setConfirmOpen(false)}
+              >
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={saveCreate}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Admin Modal */}
-      {editingAdmin && (
-        <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-md">
-            <h3 className="font-bold text-lg">Edit Admin</h3>
-            <div className="mt-4 space-y-3">
-              <input
-                type="text"
-                placeholder="Username"
-                className="input input-bordered w-full"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="input input-bordered w-full"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  className="input input-bordered w-full"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  className="input input-bordered w-full"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setEditingAdmin(null)}>
-                Cancel
-              </button>
-              <button className="btn btn-primary" onClick={saveEdit}>
-                Save
+              <button
+                className="btn btn-error"
+                onClick={async () => {
+                  setConfirmOpen(false);
+                  await confirmAction();
+                }}
+              >
+                Confirm
               </button>
             </div>
           </div>
